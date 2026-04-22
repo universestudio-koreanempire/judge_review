@@ -1,4 +1,3 @@
-import base64
 import os
 from flask import Flask, abort, render_template, Response
 import psycopg
@@ -6,7 +5,6 @@ from psycopg.rows import dict_row
 
 app = Flask(__name__)
 DATABASE_URL = os.environ.get('DATABASE_URL')
-
 
 if not DATABASE_URL:
     raise RuntimeError('DATABASE_URL environment variable is required.')
@@ -21,36 +19,63 @@ def init_db():
         with conn.cursor() as cur:
             cur.execute(
                 '''
-                CREATE TABLE IF NOT EXISTS rankings (
+                CREATE TABLE IF NOT EXISTS profiles (
                     id SERIAL PRIMARY KEY,
                     name TEXT NOT NULL,
                     affiliation TEXT DEFAULT '',
                     career TEXT DEFAULT '',
                     incident TEXT DEFAULT '',
-                    status INTEGER NOT NULL UNIQUE CHECK (status IN (1, 2, 3)),
                     photo_data BYTEA,
                     photo_mime_type TEXT DEFAULT 'image/jpeg'
                 )
                 '''
             )
 
-            cur.execute('SELECT COUNT(*) AS count FROM rankings')
-            existing_count = cur.fetchone()['count']
+            cur.execute(
+                '''
+                CREATE TABLE IF NOT EXISTS rankings (
+                    id SERIAL PRIMARY KEY,
+                    profile_id INTEGER UNIQUE REFERENCES profiles(id) ON DELETE CASCADE,
+                    status INTEGER NOT NULL UNIQUE CHECK (status IN (1, 2, 3))
+                )
+                '''
+            )
 
-            if existing_count == 0:
-                demo_rows = [
-                    ('1등 예시', '예시 소속', '예시 경력', '대표 사건 예시', 1, None, 'image/jpeg'),
-                    ('2등 예시', '예시 소속', '예시 경력', '대표 사건 예시', 2, None, 'image/jpeg'),
-                    ('3등 예시', '예시 소속', '예시 경력', '대표 사건 예시', 3, None, 'image/jpeg'),
+            cur.execute('SELECT COUNT(*) AS count FROM profiles')
+            profile_count = cur.fetchone()['count']
+
+            if profile_count == 0:
+                profile_ids = []
+                demo_profiles = [
+                    ('1등 예시', '예시 소속', '예시 경력', '대표 사건 예시', None, 'image/jpeg'),
+                    ('2등 예시', '예시 소속', '예시 경력', '대표 사건 예시', None, 'image/jpeg'),
+                    ('3등 예시', '예시 소속', '예시 경력', '대표 사건 예시', None, 'image/jpeg'),
+                ]
+
+                for profile in demo_profiles:
+                    cur.execute(
+                        '''
+                        INSERT INTO profiles (
+                            name, affiliation, career, incident, photo_data, photo_mime_type
+                        ) VALUES (%s, %s, %s, %s, %s, %s)
+                        RETURNING id
+                        ''',
+                        profile,
+                    )
+                    profile_ids.append(cur.fetchone()['id'])
+
+                demo_rankings = [
+                    (profile_ids[0], 1),
+                    (profile_ids[1], 2),
+                    (profile_ids[2], 3),
                 ]
                 cur.executemany(
                     '''
-                    INSERT INTO rankings (
-                        name, affiliation, career, incident, status, photo_data, photo_mime_type
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO rankings (profile_id, status)
+                    VALUES (%s, %s)
                     ON CONFLICT (status) DO NOTHING
                     ''',
-                    demo_rows,
+                    demo_rankings,
                 )
 
         conn.commit()
@@ -85,17 +110,25 @@ def get_rankings():
         with conn.cursor() as cur:
             cur.execute(
                 '''
-                SELECT name, affiliation, career, incident, status,
-                       photo_data IS NOT NULL AS has_photo
-                FROM rankings
-                WHERE status IN (1, 2, 3)
-                ORDER BY status ASC
+                SELECT
+                    r.status,
+                    p.id AS profile_id,
+                    p.name,
+                    p.affiliation,
+                    p.career,
+                    p.incident,
+                    p.photo_data IS NOT NULL AS has_photo
+                FROM rankings r
+                JOIN profiles p ON r.profile_id = p.id
+                WHERE r.status IN (1, 2, 3)
+                ORDER BY r.status ASC
                 '''
             )
             rows = cur.fetchall()
 
     for row in rows:
         ranking_map[row['status']] = {
+            'profile_id': row['profile_id'],
             'name': row['name'],
             'affiliation': row['affiliation'],
             'career': row['career'],
@@ -126,11 +159,12 @@ def photo(status):
         with conn.cursor() as cur:
             cur.execute(
                 '''
-                SELECT photo_data, photo_mime_type
-                FROM rankings
-                WHERE status = %s
+                SELECT p.photo_data, p.photo_mime_type
+                FROM rankings r
+                JOIN profiles p ON r.profile_id = p.id
+                WHERE r.status = %s
                 ''',
-                (status,)
+                (status,),
             )
             row = cur.fetchone()
 
@@ -142,11 +176,9 @@ def photo(status):
 
 @app.route('/admin/seed-base64')
 def admin_seed_base64_example():
-    example_message = (
-        '이 경로는 예시 안내용입니다. 자동 수정 로직에서는 base64 문자열을 받아 '\
-        'rankings.photo_data(BYTEA)에 저장하면 됩니다.'
-    )
-    return {'message': example_message}
+    return {
+        'message': '자동 수정 시에는 profiles.photo_data(BYTEA)와 rankings.status를 함께 갱신하면 됩니다.'
+    }
 
 
 if __name__ == '__main__':
