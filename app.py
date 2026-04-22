@@ -13,6 +13,13 @@ def get_db_connection():
     return conn
 
 
+def ensure_column(conn, column_name, definition):
+    columns = conn.execute('PRAGMA table_info(rankings)').fetchall()
+    existing_columns = [column['name'] for column in columns]
+    if column_name not in existing_columns:
+        conn.execute(f'ALTER TABLE rankings ADD COLUMN {column_name} {definition}')
+
+
 def init_db():
     conn = get_db_connection()
     conn.execute(
@@ -20,22 +27,33 @@ def init_db():
         CREATE TABLE IF NOT EXISTS rankings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
-            info TEXT NOT NULL,
+            affiliation TEXT DEFAULT '',
+            career TEXT DEFAULT '',
+            incident TEXT DEFAULT '',
+            photo TEXT DEFAULT '',
             status INTEGER NOT NULL UNIQUE CHECK(status IN (1, 2, 3))
         )
         '''
     )
 
+    ensure_column(conn, 'affiliation', "TEXT DEFAULT ''")
+    ensure_column(conn, 'career', "TEXT DEFAULT ''")
+    ensure_column(conn, 'incident', "TEXT DEFAULT ''")
+    ensure_column(conn, 'photo', "TEXT DEFAULT ''")
+
     existing_count = conn.execute('SELECT COUNT(*) FROM rankings').fetchone()[0]
 
     if existing_count == 0:
         demo_rows = [
-            ('1등 예시', '가장 높은 데이터', 1),
-            ('2등 예시', '두 번째 데이터', 2),
-            ('3등 예시', '세 번째 데이터', 3),
+            ('1등 예시', '예시 소속', '예시 경력', '대표 사건 예시', 'profile1.jpg', 1),
+            ('2등 예시', '예시 소속', '예시 경력', '대표 사건 예시', 'profile2.jpg', 2),
+            ('3등 예시', '예시 소속', '예시 경력', '대표 사건 예시', 'profile3.jpg', 3),
         ]
         conn.executemany(
-            'INSERT INTO rankings (name, info, status) VALUES (?, ?, ?)',
+            '''
+            INSERT INTO rankings (name, affiliation, career, incident, photo, status)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ''',
             demo_rows,
         )
 
@@ -47,20 +65,46 @@ def init_db():
 def index():
     conn = get_db_connection()
     rows = conn.execute(
-        'SELECT name, info, status FROM rankings WHERE status IN (1, 2, 3) ORDER BY status ASC'
+        '''
+        SELECT name, affiliation, career, incident, photo, status
+        FROM rankings
+        WHERE status IN (1, 2, 3)
+        ORDER BY status ASC
+        '''
     ).fetchall()
     conn.close()
 
     ranking_map = {
-        1: {'name': '1등 데이터 없음', 'info': 'status=1 데이터를 넣어주세요'},
-        2: {'name': '2등 데이터 없음', 'info': 'status=2 데이터를 넣어주세요'},
-        3: {'name': '3등 데이터 없음', 'info': 'status=3 데이터를 넣어주세요'},
+        1: {
+            'name': '1등 데이터 없음',
+            'affiliation': '소속 없음',
+            'career': '경력 없음',
+            'incident': '대표 사건 없음',
+            'photo': '',
+        },
+        2: {
+            'name': '2등 데이터 없음',
+            'affiliation': '소속 없음',
+            'career': '경력 없음',
+            'incident': '대표 사건 없음',
+            'photo': '',
+        },
+        3: {
+            'name': '3등 데이터 없음',
+            'affiliation': '소속 없음',
+            'career': '경력 없음',
+            'incident': '대표 사건 없음',
+            'photo': '',
+        },
     }
 
     for row in rows:
         ranking_map[row['status']] = {
             'name': row['name'],
-            'info': row['info'],
+            'affiliation': row['affiliation'],
+            'career': row['career'],
+            'incident': row['incident'],
+            'photo': row['photo'],
         }
 
     return render_template(
