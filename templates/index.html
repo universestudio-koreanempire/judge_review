@@ -3,23 +3,82 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>순위 페이지</title>
+  <title>"판사" 리뷰-메인</title>
+
   <style>
-    body { margin:0; font-family:sans-serif; background:#f7f2ef; }
-    .top { height:50vh; display:flex; justify-content:center; align-items:center; }
-    .top img { width:100%; height:100%; object-fit:cover; }
-    .bottom { height:50vh; display:flex; justify-content:center; align-items:center; }
-    .board { display:flex; gap:20px; }
-    .card { background:white; padding:15px; border-radius:15px; width:240px; text-align:center; }
-    .first { transform:scale(1.1); }
-    .profile-img { width:100px; height:100px; border-radius:50%; object-fit:cover; margin-bottom:10px; }
-    .field { font-size:13px; margin:3px 0; }
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f7f2ef;
+    }
+
+    .top {
+      height: 50vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .top img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* 🔥 여기 추가된 부분 */
+    .blue-bar {
+      height: 85px;
+      margin: 0 30px;
+      background: #099FE6;
+    }
+
+    .bottom {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 0;
+    }
+
+    .board {
+      display: flex;
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 15px;
+      width: 240px;
+      text-align: center;
+    }
+
+    .first {
+      transform: scale(1.1);
+    }
+
+    .profile-img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 10px;
+    }
+
+    .field {
+      font-size: 13px;
+      margin: 3px 0;
+    }
   </style>
 </head>
+
 <body>
+
   <div class="top">
     <img src="{{ url_for('static', filename='top-banner.jpeg') }}">
   </div>
+
+  <!-- 🔥 이 줄이 핵심 -->
+  <div class="blue-bar"></div>
 
   <div class="bottom">
     <div class="board">
@@ -59,5 +118,6 @@
 
     </div>
   </div>
+
 </body>
 </html>
