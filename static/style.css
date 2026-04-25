@@ -34,6 +34,14 @@ body {
   color: white;
   font-size: 24px;
   font-weight: 800;
+  text-decoration: none;
+}
+
+.blue-bar:visited,
+.blue-bar:hover,
+.blue-bar:active {
+  color: white;
+  text-decoration: none;
 }
 
 .ranking-title {
