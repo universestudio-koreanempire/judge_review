@@ -4,71 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>"판사" 리뷰-메인</title>
-
-  <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      background: #f7f2ef;
-    }
-
-    .top {
-      height: 50vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .top img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .blue-bar {
-      height: 85px;
-      margin: 20px 30px 0 30px;
-      background: #099FE6;
-      border-radius: 999px;
-    }
-
-    .bottom {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 40px 0;
-    }
-
-    .board {
-      display: flex;
-      gap: 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 15px;
-      border-radius: 15px;
-      width: 240px;
-      text-align: center;
-    }
-
-    .first {
-      transform: scale(1.1);
-    }
-
-    .profile-img {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 10px;
-    }
-
-    .field {
-      font-size: 13px;
-      margin: 3px 0;
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
@@ -78,11 +14,11 @@
   </div>
 
   <div class="blue-bar">
-  판/검사 리뷰 남기기
+    판/검사 리뷰 남기기
   </div>
 
-  <h1 style="text-align:center; margin:35px 0 25px 0;">
-  현재 판/검사 평점 순위
+  <h1 class="ranking-title">
+    현재 판/검사 평점 순위
   </h1>
   
   <div class="bottom">
