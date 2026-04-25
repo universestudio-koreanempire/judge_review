@@ -35,6 +35,8 @@ body {
   font-size: 24px;
   font-weight: 800;
   text-decoration: none;
+
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .blue-bar:visited,
@@ -42,6 +44,13 @@ body {
 .blue-bar:active {
   color: white;
   text-decoration: none;
+}
+
+.blue-bar:hover {
+  background: #078ac9;
+  transform: scale(1.02);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
 }
 
 .ranking-title {
